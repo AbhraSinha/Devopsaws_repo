@@ -1,0 +1,6 @@
+---
+- hosts: 35.174.113.25
+  become: yes
+  roles:
+    - php
+    - codedeploy

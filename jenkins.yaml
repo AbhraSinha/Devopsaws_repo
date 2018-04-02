@@ -1,0 +1,7 @@
+---
+- hosts: 52.23.209.104
+  become: yes
+  roles:
+    - php
+    - jenkins
+    - phpunit

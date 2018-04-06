@@ -1,0 +1,95 @@
+ub{
+    "Outputs": {
+        "InstanceAccess": {
+            "Description": "Command to use to access the Instance using SSH",
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    [
+                        "ssh -i ~/.ssh/Test1.pem ec2-user@",
+                        {
+                            "Fn::GetAtt": [
+                                "Webserver",
+                                "PublicDnsName"
+                            ]
+                        }
+                    ]
+                ]
+            }
+        },
+        "WebURL": {
+            "Description": "URL of the webserver",
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    [
+                        "http://",
+                        {
+                            "Fn::GetAtt": [
+                                "Webserver",
+                                "PublicDnsName"
+                            ]
+                        }
+                    ]
+                ]
+            }
+        }
+    },
+    "Parameters": {
+        "Keyname": {
+            "Description": "SSH Keypair to access the instance",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "Test1": {
+            "Properties": {
+                "GroupDescription": "Allow access through porty 80 and 22 to the web instance",
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": "22",
+                        "IpProtocol": "tcp",
+                        "ToPort": "22"
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": "80",
+                        "IpProtocol": "tcp",
+                        "ToPort": "80"
+                    }
+                ]
+            },
+            "Type": "AWS::EC2::SecurityGroup"
+        },
+        "Webserver": {
+            "Properties": {
+                "ImageId": "ami-1853ac65",
+                "InstanceType": "t2.micro",
+                "KeyName": {
+                    "Ref": "Keyname"
+                },
+                "SecurityGroups": [
+                    {
+                        "Ref": "Test1"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "\n",
+                            [
+                                "#!/bin/bash",
+                                "sudo yum -y install httpd",
+                                "sudo echo '<html><body><h1>Welcome to DevOps on AWS</h1></body></html>' > /var/www/html/test.html",
+                                "sudo service httpd start",
+                                "sudo chkconfig httpd on"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Type": "AWS::EC2::Instance"
+        }
+    }
+}
